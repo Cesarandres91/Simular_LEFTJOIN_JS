@@ -1,0 +1,1 @@
+# Simular_LEFTJOIN_JS
