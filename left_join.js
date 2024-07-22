@@ -42,17 +42,24 @@ function leftJoinMultipleTablesWithOptionalColumns(mainSheetName, lookupSheetNam
     // Crear un índice para las columnas de búsqueda por clave
     var lookupIndex = {};
     for (var i = 1; i < lookupData.length; i++) {
-      lookupIndex[lookupData[i][lookupKeyCols[n]]] = lookupData[i];
+      var key = lookupData[i][lookupKeyCols[n]];
+      if (!lookupIndex[key]) {
+        lookupIndex[key] = [];
+      }
+      lookupIndex[key].push(lookupData[i]);
     }
 
     // Realizar el LEFT JOIN
     var newResultData = [];
     for (var i = 1; i < mainData.length; i++) {
       var mainRow = mainData[i];
-      var lookupRow = lookupIndex[mainRow[mainKeyCols[n]]];
-      if (lookupRow) {
-        var selectedLookupRow = selectedColIndices.map(j => lookupRow[j]);
-        newResultData.push(mainRow.concat(selectedLookupRow));
+      var lookupRows = lookupIndex[mainRow[mainKeyCols[n]]];
+      if (lookupRows) {
+        for (var j = 0; j < lookupRows.length; j++) {
+          var lookupRow = lookupRows[j];
+          var selectedLookupRow = selectedColIndices.map(k => lookupRow[k]);
+          newResultData.push(mainRow.concat(selectedLookupRow));
+        }
       } else {
         // Si no se encuentra una coincidencia, agregar nulos para las columnas de búsqueda seleccionadas
         newResultData.push(mainRow.concat(Array(selectedColIndices.length).fill(null)));
@@ -82,7 +89,7 @@ function leftJoinExampleWithOptionalColumns() {
   leftJoinMultipleTablesWithOptionalColumns(
     'H1', 
     ['H2', 'H3'], 
-    ['B', 'B'],   // clave de tabla principal
+    ['B', 'B'], 
     ['A', 'C'], 
     [['A', 'B', 'C'], null], // Columnas seleccionadas de H2 y todas las columnas de H3
     'Resultado'
